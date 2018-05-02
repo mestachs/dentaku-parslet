@@ -25,11 +25,11 @@ class InfixExpressionParser < Parslet::Parser
   end
 
   rule(:identifier) do
-    cts((match["a-zA-Z"] >> match["a-zA-Z0-9_"].repeat).as(:indentifier))
+    cts((match["a-zA-Z"] >> match["a-zA-Z0-9_"].repeat))
   end
 
   rule(:factor) do
-    funcall | identifier | float | integer
+    funcall | identifier.as(:identifier) | float | integer
   end
 
   rule(:arglist) do
@@ -37,7 +37,7 @@ class InfixExpressionParser < Parslet::Parser
   end
 
   rule(:funcall) do
-    identifier.as(:funcall) >> str(" ").maybe >> lparen >> arglist.as(:arglist) >> rparen
+     identifier.as(:funcall) >> lparen >> arglist.as(:arglist) >> rparen
   end
 
   rule(:expression) do
