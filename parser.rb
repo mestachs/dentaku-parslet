@@ -15,7 +15,10 @@ class InfixExpressionParser < Parslet::Parser
   rule(:multiplicative_op) { cts match["*/"] }
   rule(:additive_op) { cts match["+-"] }
   rule(:comparison_op) { cts match["<>="] }
+  
   rule(:digit) { match["0-9"] }
+
+
   rule(:integer) do
     cts((str("-").maybe >> match["1-9"] >> digit.repeat).as(:integer) | str("0").as(:integer))
   end
@@ -25,11 +28,11 @@ class InfixExpressionParser < Parslet::Parser
   end
 
   rule(:identifier) do
-    cts((match["a-zA-Z"] >> match["a-zA-Z0-9_"].repeat))
+    (match["a-zA-Z"] >> match["a-zA-Z0-9_"].repeat)
   end
 
   rule(:factor) do
-    funcall | identifier.as(:identifier) | float | integer
+    funcall | identifier.as(:var_identifier) >> space? | float | integer
   end
 
   rule(:arglist) do
@@ -37,7 +40,7 @@ class InfixExpressionParser < Parslet::Parser
   end
 
   rule(:funcall) do
-     identifier.as(:funcall) >> lparen >> arglist.as(:arglist) >> rparen
+    identifier.as(:funcall) >> space? >> lparen >> arglist.as(:arglist) >> rparen
   end
 
   rule(:expression) do

@@ -1,41 +1,73 @@
 
-# IntLit = Struct.new(:int) do
-#   def eval
-#     int.to_i
-#   end
-# end
-# Addition = Struct.new(:left, :right) do
-#   def eval
-#     left.eval + right.eval
-#   end
-# end
-# FunCall = Struct.new(:name, :args) do
-#   def eval
-#     byebug
-#     values = args.map(&:eval)
+IdentifierLit = Struct.new(:var_identifier, :bindings) do
+  def eval
+    bindings[var_identifier.str] ||= 0
+  end
+end
 
-#     if name == "sum"
-#       values.reduce(0, :+)
-#     elsif name == "puts"
-#       puts values.inspect
-#     end
-#   end
-# end
+IntLit = Struct.new(:int) do
+  def eval
+    int.to_i
+  end
+end
+FloatLit = Struct.new(:float) do
+  def eval
+    float.to_f
+  end
+end
+Operation = Struct.new(:left, :operator, :right) do
+  def eval
+    op = operator.str.strip
 
+    result = if op == "+"
+               left.eval + right.eval
+             elsif op == "-"
+               left.eval - right.eval
+             elsif op == ">"
+               left.eval > right.eval
+             elsif op == "<"
+               left.eval < right.eval
+             elsif op == "="
+               left.eval == right.eval
+             else
+               raise "unsupported operand : #{operator} : #{left} #{operator} #{right}"
+             end
+    puts "#{left.eval} #{op}  #{right.eval} => #{result}"
+    result
+  end
+end
+FunCall = Struct.new(:name, :args) do
+  def eval
+    values = args.map(&:eval)
+    function_name = name.strip.downcase
+    if function_name == "if"
+      condition_expression = args[0]
+      condition = condition_expression.eval
+      condition ? args[1].eval : args[2].eval
+    elsif function_name == "sum"
+      values.reduce(0, :+)
+    elsif function_name == "puts"
+      puts values.inspect
+    end
+  end
+end
 
-# class MiniT < Parslet::Transform
-#   rule(int: simple(:int)) { IntLit.new(int) }
-#   rule(
-#     left:  simple(:left),
-#     right: simple(:right),
-#     op:    "+"
-#   ) { Addition.new(left, right) }
-#   rule(
-#     funcall: "puts",
-#     arglist: subtree(:arglist)
-#   ) { FunCall.new("puts", arglist) }
-#   rule(
-#     funcall: "sum",
-#     arglist: subtree(:arglist)
-#   ) { FunCall.new("sum", arglist) }
-# end
+class InfixInterpreter < Parslet::Transform
+  rule(l: subtree(:l), o: simple(:o), r: subtree(:r)) do
+    Operation.new(l, o, r)
+  end
+
+  rule(
+    funcall: simple(:funidentifier),
+    arglist: subtree(:arglist)
+  ) do
+    FunCall.new(funidentifier.str, arglist)
+  end
+
+  rule(var_identifier: simple(:var_identifier)) do |d|
+    IdentifierLit.new(d[:var_identifier], d[:doc])
+  end
+
+  rule(integer: simple(:integer)) { IntLit.new(integer) }
+  rule(float: simple(:float)) { FloatLit.new(float) }
+end

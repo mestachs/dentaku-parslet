@@ -31,57 +31,40 @@ problem.each do |_key, expression|
   # puts JSON.pretty_generate(int_tree)
 end
 
-IdentifierLit = Struct.new(:identifier, :bindings) do
-  def eval  
-    bindings[identifier.str]
+def test_parsing(input, expected_binding = {})
+  parser = InfixExpressionParser.new
+  tree = parser.parse_with_debug(input)
+  puts "-------------------- " + input
+  puts "******* PARSING "
+  pp tree
+  bindings = { "bb" => 4 }
+  result   = InfixInterpreter.new.apply(tree, doc: bindings)
+  puts "******* TRANSFORM"
+  pp result
+  puts "******* EVAL"
+  eval_result = result.eval
+  pp eval_result
+  pp bindings
+  bindings["result"] = eval_result
+  if bindings != expected_binding
+    puts "WARNNNNNNNNNN : got #{bindings} but expected #{expected_binding}"
+    raise "failure"
+  else
+    puts "OK"
   end
+  puts "-------"
 end
 
-IntLit = Struct.new(:int) do
-  def eval
-    int.to_i
-  end
-end
-Addition = Struct.new(:left, :right) do
-  def eval
-    left.eval + right.eval
-  end
-end
-FunCall = Struct.new(:name, :args) do
-  def eval
-    
-    values = args.map(&:eval)
+test_parsing("SUM(bb,cc+1.5 + 3)", "bb" => 4, "cc" => 0, "result" => 8.5)
+test_parsing("SUM(bb,cc + 1.5+3)", "bb" => 4, "cc" => 0, "result" => 8.5)
+test_parsing("SUM(bb, cc + 1.5 + 3 )", "bb" => 4, "cc" => 0, "result" => 8.5)
+test_parsing("SUM( bb, cc + 1.5+3 )", "bb" => 4, "cc" => 0, "result" => 8.5)
+test_parsing("SUM ( bb, cc + 1.5 + 3 )", "bb" => 4, "cc" => 0, "result" => 8.5)
+test_parsing("sum ( bb, cc + 1.5 +3)", "bb" => 4, "cc" => 0, "result" => 8.5)
 
-    if name == "SUM"
-      values.reduce(0, :+)
-    elsif name == "puts"
-      puts values.inspect
-    end
-  end
-end
 
-class InfixInterpreter < Parslet::Transform
-  rule(
-    funcall: "SUM",
-    arglist: subtree(:arglist)
-  ) do
-    FunCall.new("SUM", arglist)
-  end
-
-  rule(integer: simple(:integer)) { IntLit.new(integer) }
-  rule(identifier: simple(:identifier)) do |d|
-    IdentifierLit.new(d[:identifier], d[:doc])
-  end  
-end
-
-tree = parser.parse("SUM(bb,bb)")
-puts "******* PARSING"
-pp tree
-bindings = { "bb" => 2}
-result   = InfixInterpreter.new.apply(tree, doc: bindings)
-puts "******* TRANSFORM"
-pp result
-puts "******* EVAL"
-
-pp result.eval
-pp bindings
+test_parsing("if(bb < 5,1,4)", "bb" => 4, "result" => 1)
+test_parsing("if(bb > 3,1,4)", "bb" => 4, "result" => 1)
+test_parsing("if(bb > 5,1,4)", "bb" => 4, "result" => 4)
+test_parsing("if(bb = 5,1,4)", "bb" => 4, "result" => 4)
+test_parsing("if(bb = 4,1,4)", "bb" => 4, "result" => 1)
