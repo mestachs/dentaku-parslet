@@ -32,22 +32,24 @@ Operation = Struct.new(:left, :operator, :right) do
              else
                raise "unsupported operand : #{operator} : #{left} #{operator} #{right}"
              end
-    puts "#{left.eval} #{op}  #{right.eval} => #{result}"
+    #puts "#{left.eval} #{op}  #{right.eval} => #{result}"
     result
   end
 end
+
 FunCall = Struct.new(:name, :args) do
   def eval
     values = args.map(&:eval)
     function_name = name.strip.downcase
     if function_name == "if"
+      raise "expected args #{name} : #{args}" unless args.size != 2
       condition_expression = args[0]
       condition = condition_expression.eval
       condition ? args[1].eval : args[2].eval
     elsif function_name == "sum"
       values.reduce(0, :+)
-    elsif function_name == "puts"
-      puts values.inspect
+    else
+      raise "unsupported function call  : #{name} : #{args}"
     end
   end
 end
@@ -58,10 +60,10 @@ class InfixInterpreter < Parslet::Transform
   end
 
   rule(
-    funcall: simple(:funidentifier),
+    funcall: simple(:function_name),
     arglist: subtree(:arglist)
   ) do
-    FunCall.new(funidentifier.str, arglist)
+    FunCall.new(function_name.str, arglist)
   end
 
   rule(var_identifier: simple(:var_identifier)) do |d|

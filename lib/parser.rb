@@ -15,9 +15,8 @@ class InfixExpressionParser < Parslet::Parser
   rule(:multiplicative_op) { cts match["*/"] }
   rule(:additive_op) { cts match["+-"] }
   rule(:comparison_op) { cts match["<>="] }
-  
-  rule(:digit) { match["0-9"] }
 
+  rule(:digit) { match["0-9"] }
 
   rule(:integer) do
     cts((str("-").maybe >> match["1-9"] >> digit.repeat).as(:integer) | str("0").as(:integer))
