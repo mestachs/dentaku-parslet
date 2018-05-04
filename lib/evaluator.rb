@@ -32,7 +32,7 @@ Operation = Struct.new(:left, :operator, :right) do
              else
                raise "unsupported operand : #{operator} : #{left} #{operator} #{right}"
              end
-    #puts "#{left.eval} #{op}  #{right.eval} => #{result}"
+    # puts "#{left.eval} #{op}  #{right.eval} => #{result}"
     result
   end
 end
@@ -67,6 +67,7 @@ class InfixInterpreter < Parslet::Transform
   end
 
   rule(var_identifier: simple(:var_identifier)) do |d|
+    d[:var_identifiers]&.add(d[:var_identifier].str)
     IdentifierLit.new(d[:var_identifier], d[:doc])
   end
 

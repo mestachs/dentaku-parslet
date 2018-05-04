@@ -7,6 +7,7 @@ require "parslet/convenience"
 
 require_relative "parser"
 require_relative "evaluator"
+require_relative "sorter"
 
 # in case of too deep
 # class Parslet::Atoms::Context
