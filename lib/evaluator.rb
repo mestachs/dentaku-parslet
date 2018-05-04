@@ -23,6 +23,10 @@ Operation = Struct.new(:left, :operator, :right) do
                left.eval + right.eval
              elsif op == "-"
                left.eval - right.eval
+             elsif op == "*"
+               left.eval * right.eval
+             elsif op == "/"
+               left.eval / right.eval.to_f
              elsif op == ">"
                left.eval > right.eval
              elsif op == "<"
@@ -39,7 +43,6 @@ end
 
 FunCall = Struct.new(:name, :args) do
   def eval
-    values = args.map(&:eval)
     function_name = name.strip.downcase
     if function_name == "if"
       raise "expected args #{name} : #{args}" unless args.size != 2
@@ -47,9 +50,24 @@ FunCall = Struct.new(:name, :args) do
       condition = condition_expression.eval
       condition ? args[1].eval : args[2].eval
     elsif function_name == "sum"
+      values = args.map(&:eval)
       values.reduce(0, :+)
+    elsif function_name == "safe_div"
+      eval_denom = args[1].eval
+      if eval_denom == 0
+        0
+      else
+        eval_num = args[0].eval
+        eval_num / eval_denom.to_f
+      end
+    elsif function_name == "min"
+      values = args.map(&:eval)
+      values.min
+    elsif function_name == "max"
+      values = args.map(&:eval)
+      values.max
     else
-      raise "unsupported function call  : #{name} : #{args}"
+      raise "unsupported function call  : #{function_name}"
     end
   end
 end

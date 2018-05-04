@@ -18,6 +18,20 @@ RSpec.describe "Parsor and interpretor" do
     end
   end
 
+  describe "solve most problems" do
+    let(:solver) { EquationsSolver.new }
+    let(:problem) { JSON.parse(File.read("problem.json")) }
+    let(:expected_solution) { JSON.parse(File.read("solution.json")) }
+    it "parse and evaluate" do
+      problem.each do |key, expression|
+        solver.add(key, expression)
+      end
+      solution = solver.solve!
+      #      puts JSON.pretty_generate(solution)
+      expect(solution).to eq(expected_solution)      
+    end
+  end
+
   describe "support spacing" do
     let(:bindings) { { "bb" => 4 } }
 
