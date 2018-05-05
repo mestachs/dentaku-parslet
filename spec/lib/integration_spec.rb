@@ -4,23 +4,6 @@ RSpec.describe "Parsor and interpretor" do
   let(:parser) { InfixExpressionParser.new }
   let(:interpreter) { InfixInterpreter.new }
 
-  describe "support most problems" do
-    let(:problem) { JSON.parse(File.read("spec/fixtures/problem.json")) }
-    let(:bindings) { {} }
-
-    it "parse and evaluate" do
-      problem.each do |key, raw_expression|
-        expression=raw_expression.to_s
-        begin
-        tree = parser.parse_with_debug(expression)
-        interpreter.apply(tree, doc: bindings)
-        rescue => e 
-          fail " #{key} #{raw_expression}'#{expression}' #{e.class} #{e.message}"
-        end 
-        # puts JSON.pretty_generate(int_tree)
-      end
-    end
-  end
 
   describe "solve most problems" do
     let(:solver) { EquationsSolver.new }
@@ -28,11 +11,11 @@ RSpec.describe "Parsor and interpretor" do
     let(:expected_solution) { JSON.parse(File.read("spec/fixtures/solution.json")) }
     it "parse and evaluate" do
       problem.each do |key, expression|
-        solver.add(key, expression.to_s)
+        solver.add(key, expression)
       end
       solution = solver.solve!
-           # puts JSON.pretty_generate(solution)
-      expect(solution).to eq(expected_solution)      
+      # puts JSON.pretty_generate(solution)
+      expect(solution).to eq(expected_solution)
     end
   end
 

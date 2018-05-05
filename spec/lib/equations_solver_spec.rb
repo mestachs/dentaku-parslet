@@ -7,8 +7,6 @@ RSpec.describe EquationsSolver do
     solver.add("b", "10 + a")
     expect(solver.solving_order).to eq(%w[a b c])
 
-    expect(solver.solve!).to eq({"a" => 10, "b" => 20, "c" => 30})
-
-    
+    expect(solver.solve!).to eq("a" => 10, "b" => 20, "c" => 30)
   end
 end
