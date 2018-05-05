@@ -1,5 +1,8 @@
-require 'simplecov'
-SimpleCov.start
+
+if ENV["DISABLE_SIMPLECOV"] != "true"
+  require "simplecov"
+  SimpleCov.start
+end
 
 require_relative "../lib/solver"
 
