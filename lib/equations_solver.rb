@@ -22,7 +22,12 @@ class EquationsSolver
         EMPTY_DEPENDENCIES
       )
     else
-      ast_tree = @parser.parse(expression)
+      ast_tree = begin 
+       @parser.parse(expression)
+      rescue Parslet::ParseFailed => e
+        raise "failed to parse #{name} := #{expression} : #{e.message}"
+      end
+      puts ast_tree
       var_identifiers = Set.new
       interpretation = @interpreter.apply(
         ast_tree,

@@ -9,4 +9,17 @@ RSpec.describe EquationsSolver do
 
     expect(solver.solve!).to eq("a" => 10, "b" => 20, "c" => 30)
   end
+
+  it "solves equation with parentheses" do
+    solver.add("a", "10")
+    solver.add("b", "10 + a")
+    solver.add("c", "(a + b)")
+    expect(solver.solve!).to eq("a" => 10, "b" => 20, "c" => 30)
+  end
+
+  it "solves equation with parentheses" do
+    solver.add("a", "10")
+    solver.add("b", "10 + a")   
+    expect(solver.solve!).to eq("a" => 10, "b" => 20)
+  end
 end
