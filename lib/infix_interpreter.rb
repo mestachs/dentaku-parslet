@@ -1,7 +1,7 @@
 
 IdentifierLit = Struct.new(:var_identifier, :bindings) do
   def eval
-    bindings[var_identifier.str] ||= 0
+    bindings[var_identifier] ||= 0
   end
 end
 
@@ -31,7 +31,11 @@ Operation = Struct.new(:left, :operator, :right) do
                left.eval > right.eval
              elsif op == "<"
                left.eval < right.eval
-             elsif op == "="
+             elsif op == ">="
+               left.eval >= right.eval
+             elsif op == "<="
+               left.eval <= right.eval
+             elsif op == "=" || op == "=="
                left.eval == right.eval
              else
                raise "unsupported operand : #{operator} : #{left} #{operator} #{right}"
@@ -66,6 +70,19 @@ FunCall = Struct.new(:name, :args) do
     elsif function_name == "max"
       values = args.map(&:eval)
       values.max
+    elsif function_name == "avg"
+      values = args.map(&:eval)
+      values.inject(0.0) { |acc, elem| acc + elem } / values.size
+    elsif funtion_name == "score_table"
+      values = args.map(&:eval)
+      target = values.shift
+      matching_rules = values.each_slice(3).find do |lower, greater, result|
+        greater.nil? || result.nil? ? true : lower <= target && target < greater
+      end
+      matching_rules.last
+    elsif function_name == "randbetween"
+      values = args.map(&:eval)
+      rand(values.first..values.last)
     else
       raise "unsupported function call  : #{function_name}"
     end
@@ -73,20 +90,20 @@ FunCall = Struct.new(:name, :args) do
 end
 
 class InfixInterpreter < Parslet::Transform
-  rule(l: subtree(:l), o: simple(:o), r: subtree(:r)) do
-    Operation.new(l, o, r)
+  rule(left:  simple(:left),
+       right: simple(:right),
+       op:    simple(:op)) do
+    Operation.new(left, op, right)
   end
-
-  rule(
-    funcall: simple(:function_name),
-    arglist: subtree(:arglist)
-  ) do
-    FunCall.new(function_name.str, arglist)
+  rule(plist: sequence(:arr)) { arr }
+  rule(plist: "()") { [] }
+  rule(fcall: { name: simple(:name), varlist: sequence(:vars) }) do
+    FunCall.new(name, vars)
   end
-
-  rule(var_identifier: simple(:var_identifier)) do |d|
-    d[:var_identifiers]&.add(d[:var_identifier].str)
-    IdentifierLit.new(d[:var_identifier], d[:doc])
+  rule(identifier: simple(:id)) { id.to_s }
+  rule(variable: simple(:variable)) do |d|
+    d[:var_identifiers]&.add(d[:variable])
+    IdentifierLit.new(d[:variable], d[:doc])
   end
 
   rule(integer: simple(:integer)) { IntLit.new(integer) }

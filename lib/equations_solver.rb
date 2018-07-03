@@ -14,20 +14,21 @@ class EquationsSolver
 
   alias solving_order tsort
 
-  def add(name, expression)
+  def add(name, raw_expression)
+    expression= raw_expression
     if expression.is_a?(Numeric)
       @equations[name] = Equation.new(
         name,
-        FakeEvaluable.new(expression),
+        FakeEvaluable.new(raw_expression),
         EMPTY_DEPENDENCIES
       )
     else
-      ast_tree = begin 
+      expression = raw_expression.gsub(/\r\n?/, "")
+      ast_tree = begin
        @parser.parse(expression)
       rescue Parslet::ParseFailed => e
         raise "failed to parse #{name} := #{expression} : #{e.message}"
       end
-      puts ast_tree
       var_identifiers = Set.new
       interpretation = @interpreter.apply(
         ast_tree,
